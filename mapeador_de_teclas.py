@@ -254,14 +254,11 @@ class MapperApp:
         if self._trigger_playing:
             self._trigger_playing = False
             return
-
         recorded = self.load_mapping()
         if not recorded:
             messagebox.showwarning("Nenhum mapeamento", "Não há mapeamento salvo.")
             return
-
         self._trigger_playing = True
-
         def worker():
             try:
                 self._play_recorded_once(recorded, speed=1.0)
