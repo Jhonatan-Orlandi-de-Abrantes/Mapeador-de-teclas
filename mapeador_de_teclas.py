@@ -42,7 +42,7 @@ class MapperApp:
         self.lbl_hotkey_record.grid(row=0, column=1, sticky="w", padx=(6,0))
         tk.Button(frame_atalhos, text="Definir", command=lambda: threading.Thread(target=self.set_hotkey, args=("record",)).start()).grid(row=0, column=2, padx=6)
 
-        tk.Label(frame_atalhos, text="Atalho Iniciar Loop:").grid(row=1, column=0, sticky="w")
+        tk.Label(frame_atalhos, text="Atalho Iniciar/Parar Loop:").grid(row=1, column=0, sticky="w")
         self.lbl_hotkey_start = tk.Label(frame_atalhos, text=self.hotkey_start, width=10, relief="sunken")
         self.lbl_hotkey_start.grid(row=1, column=1, sticky="w", padx=(6,0))
         tk.Button(frame_atalhos, text="Definir", command=lambda: threading.Thread(target=self.set_hotkey, args=("start",)).start()).grid(row=1, column=2, padx=6)
@@ -77,7 +77,7 @@ class MapperApp:
                     "start": self.hotkey_start,
                     "trigger": self.trigger_key
                 }, f)
-        except Exception as e: print("Erro ao salvar hotkeys:", e)
+        except Exception as e: print("Erro ao salvar teclas:", e)
 
     def load_hotkeys(self):
         if os.path.exists(HOTKEYS_FILE):
@@ -88,7 +88,7 @@ class MapperApp:
                     self.hotkey_start = data.get("start", self.hotkey_start)
                     self.trigger_key = data.get("trigger", self.trigger_key)
             except Exception as e:
-                print("Erro ao carregar hotkeys:", e)
+                print("Erro ao carregar teclas:", e)
 
     def register_hotkeys(self):
         try: keyboard.remove_hotkey(self.hotkey_record)
@@ -102,11 +102,11 @@ class MapperApp:
             keyboard.add_hotkey(self.hotkey_start, lambda: threading.Thread(target=self.on_start_loop_button).start())
             keyboard.add_hotkey(self.trigger_key, lambda: threading.Thread(target=self.trigger_mapping_once).start())
         except Exception as e:
-            print("Erro ao registrar hotkeys:", e)
+            print("Erro ao registrar teclas:", e)
 
     # ---------- Definir hotkeys via modal ----------
     def set_hotkey(self, which):
-        title = "Definir atalho para Gravar" if which == "record" else "Definir atalho para Iniciar Loop"
+        title = "Definir atalho para Gravar" if which == "record" else "Definir atalho para Iniciar/Parar Loop"
         key = self.capture_single_key_modal(title)
         key = key
         if not key: return
@@ -126,7 +126,7 @@ class MapperApp:
             self.register_hotkeys()
             messagebox.showinfo("Ok", f"Tecla definida: {key.upper()}")
         except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao definir hotkey: {e}")
+            messagebox.showerror("Erro", f"Erro ao definir teclas: {e}")
 
     def define_trigger_key(self):
         key = self.capture_single_key_modal("Defina a tecla de reprodução única")
@@ -283,7 +283,7 @@ class MapperApp:
             messagebox.showwarning("Nenhum mapeamento", "Não há mapeamento salvo.")
             return
 
-        if not messagebox.askyesno("Iniciar loop?", f"Deseja iniciar o loop contínuo?\n(Pressione '{self.hotkey_start}' novamente para parar)"):
+        if not messagebox.askyesno("Iniciar loop?", f"Deseja iniciar o loop contínuo?\n(Pressione '{self.hotkey_start.upper()}' novamente para parar)"):
             return
 
         self.looping = True
