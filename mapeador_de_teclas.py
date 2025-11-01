@@ -1,5 +1,6 @@
 import tkinter as tk, threading, pickle, os, time, keyboard
 from tkinter import messagebox
+from win10toast import ToastNotifier
 
 MAPPING_FILE = "mapping.pkl"
 HOTKEYS_FILE = "hotkeys.pkl"
@@ -25,6 +26,8 @@ class MapperApp:
         self._build_ui()
         self.register_hotkeys()
         self.update_mapping_label()
+
+        self.notifier = ToastNotifier()
 
     # ---------- UI ----------
     def _build_ui(self):
@@ -253,12 +256,17 @@ class MapperApp:
     def trigger_mapping_once(self):
         if self._trigger_playing:
             self._trigger_playing = False
+            # Notificação de parada
+            self.notifier.show_toast(f"{root.title()}", "Loop parado!", duration=1, threaded=True)
             return
         recorded = self.load_mapping()
         if not recorded:
             messagebox.showwarning("Nenhum mapeamento", "Não há mapeamento salvo.")
             return
         self._trigger_playing = True
+        # Notificação de início
+        self.notifier.show_toast(f"{root.title()}", "Loop iniciado!", duration=1, threaded=True)
+
         def worker():
             try:
                 self._play_recorded_once(recorded, speed=1.0)
@@ -273,6 +281,8 @@ class MapperApp:
             self.looping = False
             if self.loop_thread:
                 self.loop_thread.join(timeout=0.5)
+            # Notificação de parada
+            self.notifier.show_toast(f"{root.title()}", "Loop parado!", duration=1, threaded=True)
             return
 
         recorded = self.load_mapping()
@@ -280,10 +290,9 @@ class MapperApp:
             messagebox.showwarning("Nenhum mapeamento", "Não há mapeamento salvo.")
             return
 
-        if not messagebox.askyesno("Iniciar loop?", f"Deseja iniciar o loop contínuo?\n(Pressione '{self.hotkey_start.upper()}' novamente para parar)"):
-            return
-
         self.looping = True
+        # Notificação de início
+        self.notifier.show_toast(f"{root.title()}", "Loop iniciado!", duration=1, threaded=True)
 
         def loop_worker():
             try:
@@ -295,6 +304,7 @@ class MapperApp:
                         time.sleep(0.01)
             finally:
                 self.looping = False
+                self.notifier.show_toast("Mapeador", "Loop parado.", duration=3, threaded=True)
 
         self.loop_thread = threading.Thread(target=loop_worker, daemon=True)
         self.loop_thread.start()
